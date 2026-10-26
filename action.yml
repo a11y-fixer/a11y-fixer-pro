@@ -1,8 +1,15 @@
-name: 'a11y-fixer'
-description: 'Automatically find and fix accessibility violations in your React/JSX source code'
+name: 'a11y-fixer-pro'
+description: 'AI-assisted accessibility fixes for your React/JSX source — finds and fixes WCAG violations, opens a PR'
 author: 'a11y-fixer'
 
+branding:
+  icon: 'check-circle'
+  color: 'purple'
+
 inputs:
+  license-key:
+    description: 'a11y-fixer-pro license key (required). Store it as a repository secret. Buy at https://a11y-fixer.com'
+    required: true
   dir:
     description: 'Directory to scan (default: .)'
     required: false
@@ -63,6 +70,7 @@ runs:
       shell: bash
       run: node "$GITHUB_ACTION_PATH/packages/github-action/dist/index.js"
       env:
+        INPUT_LICENSE-KEY: ${{ inputs.license-key }}
         INPUT_DIR: ${{ inputs.dir }}
         INPUT_MODE: ${{ inputs.mode }}
         INPUT_GITHUB-TOKEN: ${{ inputs.github-token }}

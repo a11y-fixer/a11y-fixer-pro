@@ -7,6 +7,7 @@ import {
 } from '@a11y-fixer/core';
 import type { A11yViolation, FixResult } from '@a11y-fixer/core';
 import { buildFullRegistry, AnthropicProvider } from '@a11y-fixer/ai';
+import { verifyLicenseKey } from './license.js';
 import path from 'node:path';
 
 /**
@@ -63,6 +64,20 @@ export async function run(): Promise<void> {
   // (e.g. older workflow files that predate this option).
   const html = core.getInput('html').toLowerCase() === 'true';
   const baseBranch = core.getInput('base-branch') || 'main';
+
+  // This is paid, source-available software: a valid license key is required to
+  // run it. The free, deterministic engine lives in @a11y-fixer/cli on npm.
+  const license = verifyLicenseKey(core.getInput('license-key'));
+  if (!license.valid) {
+    core.setFailed(
+      `a11y-fixer-pro requires a valid license key: ${license.reason}. ` +
+      'Buy one at https://a11y-fixer.com and pass it via the `license-key` input ' +
+      '(store it as a repository secret). The free deterministic CLI is available ' +
+      'as `@a11y-fixer/cli` on npm.',
+    );
+    return;
+  }
+  core.info(`License valid for ${license.subject} (expires ${new Date((license.expires ?? 0) * 1000).toISOString().slice(0, 10)}).`);
 
   if (anthropicKey) process.env['ANTHROPIC_API_KEY'] = anthropicKey;
   if (githubToken) process.env['GITHUB_TOKEN'] = githubToken;

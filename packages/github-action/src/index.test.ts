@@ -92,11 +92,18 @@ function setInputs(inputs: Record<string, string>): void {
 
 const savedEnv = { ...process.env };
 
+// A real token signed by the production key (sub=test@example.com, exp ~2126).
+// Every mode requires a valid license, so supply one by default; the license
+// tests override it.
+const VALID_LICENSE =
+  'eyJ2IjoxLCJzdWIiOiJ0ZXN0QGV4YW1wbGUuY29tIiwiZXhwIjo0OTQ2NTkxMDQ3fQ.PUo1x635LMj2Hyg5piVzY-U83FTutaRKoPF-8ioK599Oi_0QXlx8MF28dB2dY3sZE9Yl_maZ1HJObSwaSTFDBQ';
+
 beforeEach(() => {
   vi.clearAllMocks();
   for (const k of Object.keys(process.env)) {
     if (k.startsWith('INPUT_')) delete process.env[k];
   }
+  process.env['INPUT_LICENSE-KEY'] = VALID_LICENSE;
 });
 
 afterEach(() => {
@@ -236,5 +243,32 @@ describe('github-action error handling', () => {
     await run();
 
     expect(setFailed).toHaveBeenCalledWith('scan exploded');
+  });
+});
+
+describe('github-action license gating', () => {
+  it('fails and does nothing when no license key is provided', async () => {
+    delete process.env['INPUT_LICENSE-KEY'];
+    const setFailed = vi.spyOn(actionsCore, 'setFailed');
+    setInputs({ mode: 'check', dir: '.' });
+
+    const { run } = await import('./index.js');
+    await run();
+
+    expect(setFailed).toHaveBeenCalledWith(expect.stringContaining('valid license key'));
+    expect(h.scan).not.toHaveBeenCalled();
+  });
+
+  it('fails when the license key is invalid', async () => {
+    process.env['INPUT_LICENSE-KEY'] = 'garbage.token';
+    const setFailed = vi.spyOn(actionsCore, 'setFailed');
+    setInputs({ mode: 'fix', dir: '.', 'github-token': 'tok' });
+
+    const { run } = await import('./index.js');
+    await run();
+
+    expect(setFailed).toHaveBeenCalledWith(expect.stringContaining('license key'));
+    expect(h.applyAll).not.toHaveBeenCalled();
+    expect(h.createPR).not.toHaveBeenCalled();
   });
 });
