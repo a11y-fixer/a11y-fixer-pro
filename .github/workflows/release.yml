@@ -1,0 +1,49 @@
+name: Release tags
+
+# GitHub Actions are consumed by git tag, not npm. On each published release
+# (e.g. v1.2.3) this moves the floating major tag (v1) to the release commit so
+# consumers can pin `a11y-fixer/a11y-fixer-pro@v1` and get the latest v1.x.
+#
+# It also rebuilds the ncc bundle and fails if the committed dist is stale, so a
+# release can never ship a bundle that doesn't match source.
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  retag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Verify the committed action bundle matches source
+        run: |
+          pnpm --filter @a11y-fixer/github-action run build
+          if ! git diff --quiet -- packages/github-action/dist; then
+            echo "::error::packages/github-action/dist is out of date for this release."
+            exit 1
+          fi
+
+      - name: Move the floating major tag
+        run: |
+          VERSION="${GITHUB_REF_NAME}"   # e.g. v1.2.3
+          MAJOR="${VERSION%%.*}"         # e.g. v1
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -f "$MAJOR" "$GITHUB_SHA"
+          git push origin "$MAJOR" --force
+          echo "Moved $MAJOR -> $VERSION ($GITHUB_SHA)"
