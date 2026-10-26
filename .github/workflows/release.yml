@@ -32,7 +32,9 @@ jobs:
 
       - name: Verify the committed action bundle matches source
         run: |
-          pnpm --filter @a11y-fixer/github-action run build
+          # Build the whole workspace in topological order: the action's tsc step
+          # needs @a11y-fixer/ai's declarations (built first) to resolve.
+          pnpm -r run build
           if ! git diff --quiet -- packages/github-action/dist; then
             echo "::error::packages/github-action/dist is out of date for this release."
             exit 1
