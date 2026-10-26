@@ -1,0 +1,73 @@
+name: 'a11y-fixer'
+description: 'Automatically find and fix accessibility violations in your React/JSX source code'
+author: 'a11y-fixer'
+
+inputs:
+  dir:
+    description: 'Directory to scan (default: .)'
+    required: false
+    default: '.'
+  mode:
+    description: 'scan | fix | check (default: check for CI)'
+    required: false
+    default: 'check'
+  github-token:
+    description: 'GitHub token for creating PRs (required for fix mode)'
+    required: false
+    default: ${{ github.token }}
+  anthropic-api-key:
+    description: 'Anthropic API key for AI-assisted fixes (optional)'
+    required: false
+  url:
+    description: 'URL to scan with axe-core (optional). Honored in scan/check mode only — fix mode is static JSX/HTML, since live URLs can not be mapped back to source.'
+    required: false
+  html:
+    description: 'Scan static .html/.htm files with axe-core instead of JSX'
+    required: false
+    default: 'false'
+  base-branch:
+    description: 'Base branch for the fix-mode PR (default: main)'
+    required: false
+    default: 'main'
+
+outputs:
+  pr-url:
+    description: 'URL of the PR opened in fix mode (empty if none)'
+    value: ${{ steps.run.outputs.pr-url }}
+  fixes-applied:
+    description: 'Number of fixes applied in fix mode'
+    value: ${{ steps.run.outputs.fixes-applied }}
+  violations-before:
+    description: 'Violation count before fixing'
+    value: ${{ steps.run.outputs.violations-before }}
+  violations-after:
+    description: 'Violation count after fixing'
+    value: ${{ steps.run.outputs.violations-after }}
+  violations:
+    description: 'JSON array of violations (scan mode)'
+    value: ${{ steps.run.outputs.violations }}
+
+runs:
+  using: 'composite'
+  steps:
+    # URL and HTML scans drive a real browser via puppeteer-core; install a
+    # Chrome for it. Static JSX scans (the default) do not need it, but the
+    # step is cheap and keeps the action single-path.
+    - id: chrome
+      uses: browser-actions/setup-chrome@v1
+
+    # The bundled Node entry reads inputs from the INPUT_* env vars @actions/core
+    # expects (a composite action does not inject them automatically), and points
+    # puppeteer-core at the Chrome installed above.
+    - id: run
+      shell: bash
+      run: node "$GITHUB_ACTION_PATH/packages/github-action/dist/index.js"
+      env:
+        INPUT_DIR: ${{ inputs.dir }}
+        INPUT_MODE: ${{ inputs.mode }}
+        INPUT_GITHUB-TOKEN: ${{ inputs.github-token }}
+        INPUT_ANTHROPIC-API-KEY: ${{ inputs.anthropic-api-key }}
+        INPUT_URL: ${{ inputs.url }}
+        INPUT_HTML: ${{ inputs.html }}
+        INPUT_BASE-BRANCH: ${{ inputs.base-branch }}
+        PUPPETEER_EXECUTABLE_PATH: ${{ steps.chrome.outputs.chrome-path }}

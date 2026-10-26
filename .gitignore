@@ -1,0 +1,10 @@
+node_modules/
+*.tsbuildinfo
+.vite/
+coverage/
+
+# The AI package's dist is a build output.
+packages/ai/dist/
+
+# NOTE: packages/github-action/dist is intentionally committed — it is the
+# bundled runtime the composite action executes (action.yml runs dist/index.js).

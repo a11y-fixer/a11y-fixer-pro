@@ -1,0 +1,5 @@
+# The built bundle MUST be committed — GitHub runs published actions straight
+# from dist/index.js with no install step. Re-include it despite the root
+# .gitignore excluding dist/ everywhere.
+!dist/
+!dist/**

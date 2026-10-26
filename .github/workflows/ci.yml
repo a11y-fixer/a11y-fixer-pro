@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # pnpm/action-setup reads the version from the root package.json
+      # "packageManager" field, keeping CI and local in sync.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm -r run build
+
+      # Coverage thresholds live in each package's vitest.config.ts, so this
+      # step fails the build on any regression below the gate.
+      - run: pnpm -r run coverage
+
+      # The committed action bundle must match source — rebuild and fail if the
+      # checked-in dist is stale.
+      - name: Verify github-action bundle is up to date
+        run: |
+          pnpm --filter @a11y-fixer/github-action run build
+          if ! git diff --quiet -- packages/github-action/dist; then
+            echo "::error::packages/github-action/dist is out of date. Run 'pnpm --filter @a11y-fixer/github-action run build' and commit."
+            git --no-pager diff --stat -- packages/github-action/dist
+            exit 1
+          fi
