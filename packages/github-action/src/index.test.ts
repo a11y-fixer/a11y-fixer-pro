@@ -9,6 +9,8 @@ const h = vi.hoisted(() => ({
   applyAll: vi.fn(),
   prCtor: vi.fn(),
   puppeteerCtor: vi.fn(),
+  cacheCtor: vi.fn(),
+  cacheSave: vi.fn(async () => {}),
 }));
 
 vi.mock('@actions/github', () => ({
@@ -18,6 +20,18 @@ vi.mock('@actions/github', () => ({
 vi.mock('@a11y-fixer/ai', () => ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   AnthropicProvider: class { constructor(..._args: any[]) {} },
+  CachingProvider: class {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    constructor(...args: any[]) {
+      h.cacheCtor(...args);
+    }
+    available() {
+      return false;
+    }
+    save() {
+      return h.cacheSave();
+    }
+  },
   buildFullRegistry: () => ({ register() {}, applyAll: () => h.applyAll() }),
 }));
 
@@ -164,6 +178,29 @@ describe('github-action fix mode', () => {
 
     expect(h.createPR).not.toHaveBeenCalled();
     expect(info).toHaveBeenCalledWith('No files were changed — skipping PR.');
+  });
+
+  it('wraps the provider in a cache (threading cache-file) and flushes it after applying', async () => {
+    h.scan.mockResolvedValue([]);
+    h.applyAll.mockResolvedValue([]);
+    setInputs({ mode: 'fix', dir: '.', 'github-token': 'tok', 'cache-file': '/tmp/ai-cache.json' });
+
+    const { run } = await import('./index.js');
+    await run();
+
+    expect(h.cacheCtor).toHaveBeenCalledWith(expect.anything(), { cacheFile: '/tmp/ai-cache.json' });
+    expect(h.cacheSave).toHaveBeenCalledTimes(1);
+  });
+
+  it('passes an undefined cache-file through when none is set', async () => {
+    h.scan.mockResolvedValue([]);
+    h.applyAll.mockResolvedValue([]);
+    setInputs({ mode: 'fix', dir: '.', 'github-token': 'tok' });
+
+    const { run } = await import('./index.js');
+    await run();
+
+    expect(h.cacheCtor).toHaveBeenCalledWith(expect.anything(), { cacheFile: undefined });
   });
 
   it('warns and ignores url in fix mode (static-only)', async () => {
