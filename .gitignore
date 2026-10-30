@@ -8,3 +8,6 @@ packages/ai/dist/
 
 # NOTE: packages/github-action/dist is intentionally committed — it is the
 # bundled runtime the composite action executes (action.yml runs dist/index.js).
+
+# Local license issuance ledger (contains customer identifiers — never commit).
+.licenses/
