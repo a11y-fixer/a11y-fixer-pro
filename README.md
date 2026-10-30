@@ -31,6 +31,31 @@ Store your license key as a repository (or org) secret. Without a valid key the
 action fails fast with a clear message. See [`action.yml`](./action.yml) for all
 inputs and outputs.
 
+## AI cost controls
+
+Identical AI requests (the same repeated "click here" link, the same logo image
+across pages, the same icon button) cost at most one Anthropic call.
+**Within a run** this deduplication is automatic — no configuration.
+
+For savings **across runs**, point `cache-file` at a JSON file and persist it
+with [`actions/cache`](https://github.com/actions/cache), keyed on your source
+so the cache is reused until the code changes:
+
+```yaml
+- uses: actions/cache@v4
+  with:
+    path: .a11y-fixer-cache.json
+    key: a11y-fixer-ai-${{ hashFiles('src/**') }}
+
+- uses: a11y-fixer/a11y-fixer-pro@v1
+  with:
+    mode: fix
+    license-key: ${{ secrets.A11Y_FIXER_LICENSE_KEY }}
+    anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    cache-file: .a11y-fixer-cache.json
+```
+
 ## Packages
 
 - **`packages/ai`** (`@a11y-fixer/ai`) — Anthropic provider + AI-assisted fixers

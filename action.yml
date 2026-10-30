@@ -36,6 +36,9 @@ inputs:
     description: 'Base branch for the fix-mode PR (default: main)'
     required: false
     default: 'main'
+  cache-file:
+    description: 'Path to a JSON file for caching AI results across runs (optional). Pair with actions/cache to cut Anthropic spend. In-run deduplication is always on; this only adds cross-run persistence.'
+    required: false
 
 outputs:
   pr-url:
@@ -78,4 +81,5 @@ runs:
         INPUT_URL: ${{ inputs.url }}
         INPUT_HTML: ${{ inputs.html }}
         INPUT_BASE-BRANCH: ${{ inputs.base-branch }}
+        INPUT_CACHE-FILE: ${{ inputs.cache-file }}
         PUPPETEER_EXECUTABLE_PATH: ${{ steps.chrome.outputs.chrome-path }}

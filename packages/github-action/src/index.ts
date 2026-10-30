@@ -6,7 +6,7 @@ import {
   dedupeFixFiles,
 } from '@a11y-fixer/core';
 import type { A11yViolation, FixResult } from '@a11y-fixer/core';
-import { buildFullRegistry, AnthropicProvider } from '@a11y-fixer/ai';
+import { buildFullRegistry, AnthropicProvider, CachingProvider } from '@a11y-fixer/ai';
 import { verifyLicenseKey } from './license.js';
 import path from 'node:path';
 
@@ -64,6 +64,8 @@ export async function run(): Promise<void> {
   // (e.g. older workflow files that predate this option).
   const html = core.getInput('html').toLowerCase() === 'true';
   const baseBranch = core.getInput('base-branch') || 'main';
+  // Optional persistent AI cache. Empty = per-run in-memory dedup only.
+  const cacheFile = core.getInput('cache-file') || undefined;
 
   // This is paid, source-available software: a valid license key is required to
   // run it. The free, deterministic engine lives in @a11y-fixer/cli on npm.
@@ -111,13 +113,16 @@ export async function run(): Promise<void> {
           'or mode: fix with static JSX/HTML. Ignoring `url` for this fix run.',
         );
       }
-      const aiProvider = new AnthropicProvider();
+      // Wrap the provider so identical requests cost at most one API call:
+      // in-memory dedup within this run, plus an optional cross-run disk cache.
+      const aiProvider = new CachingProvider(new AnthropicProvider(), { cacheFile });
       // Static-only (no PuppeteerRunner): the browser screenshot path exists
       // only for URL scans, which fix mode does not support.
       const registry = buildFullRegistry(aiProvider, rootDir);
 
       const before = await scanSource(rootDir, { html });
       const fixes = await registry.applyAll(before);
+      await aiProvider.save();
       const applied = fixes.filter(f => f.applied);
       const after = await scanSource(rootDir, { html });
 
