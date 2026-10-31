@@ -7,6 +7,7 @@ import type { A11yViolation } from '@a11y-fixer/core';
 import { buildFullRegistry } from './registry.js';
 import { AltTextFixer } from './alt-text.js';
 import { LinkTextFixer } from './link-text.js';
+import { LinkNameFixer } from './link-name.js';
 import { ButtonNameFixer } from './button-name.js';
 import { FormLabelFixer } from './form-label.js';
 import type { AIProvider } from '../provider/index.js';
@@ -119,6 +120,7 @@ describe('AI fixer pipeline (real core, fake provider)', () => {
     expect(registry.getFixer(violation('image-alt', '1.1.1', 4))).toBeInstanceOf(AltTextFixer);
     expect(registry.getFixer(violation('anchor-has-content', '2.4.4', 5))).toBeInstanceOf(LinkTextFixer);
     expect(registry.getFixer(violation('button-name', '4.1.2', 6))).toBeInstanceOf(ButtonNameFixer);
+    expect(registry.getFixer(violation('link-name', '4.1.2', 5))).toBeInstanceOf(LinkNameFixer);
     expect(registry.getFixer(violation('label', '1.3.1', 7))).toBeInstanceOf(FormLabelFixer);
   });
 
