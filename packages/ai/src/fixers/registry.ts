@@ -2,6 +2,7 @@ import { FixerRegistry, registerCoreFixers } from '@a11y-fixer/core';
 import type { AIProvider } from '../provider/index.js';
 import { AltTextFixer, type ScreenshotProvider } from './alt-text.js';
 import { LinkTextFixer } from './link-text.js';
+import { LinkNameFixer } from './link-name.js';
 import { ButtonNameFixer } from './button-name.js';
 import { FormLabelFixer } from './form-label.js';
 
@@ -23,6 +24,7 @@ export function buildFullRegistry(
 
   registry.register(new AltTextFixer(aiProvider, rootDir, screenshots));
   registry.register(new LinkTextFixer(aiProvider, rootDir));
+  registry.register(new LinkNameFixer(aiProvider, rootDir));
   registry.register(new ButtonNameFixer(aiProvider, rootDir));
   registry.register(new FormLabelFixer(aiProvider, rootDir));
 

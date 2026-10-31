@@ -3,6 +3,7 @@ import type { A11yViolation } from '@a11y-fixer/core';
 import { EslintFixer, HtmlLangFixer } from '@a11y-fixer/core';
 import { buildFullRegistry } from './registry.js';
 import { AltTextFixer } from './alt-text.js';
+import { LinkNameFixer } from './link-name.js';
 import { ButtonNameFixer } from './button-name.js';
 import { FormLabelFixer } from './form-label.js';
 import type { AIProvider } from '../provider/index.js';
@@ -35,6 +36,10 @@ describe('buildFullRegistry dispatch', () => {
 
   it('routes axe button-name (WCAG 4.1.2) to ButtonNameFixer, not EslintFixer', () => {
     expect(registry.getFixer(violation('button-name', '4.1.2'))).toBeInstanceOf(ButtonNameFixer);
+  });
+
+  it('routes axe link-name (WCAG 4.1.2) to LinkNameFixer, not EslintFixer', () => {
+    expect(registry.getFixer(violation('link-name', '4.1.2'))).toBeInstanceOf(LinkNameFixer);
   });
 
   it('routes axe label (WCAG 1.3.1) to FormLabelFixer, not EslintFixer', () => {
