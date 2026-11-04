@@ -144,6 +144,64 @@ describe('github-action fix mode', () => {
     );
   });
 
+  it('wires the PR url to the pr-url output and logs the PR lifecycle', async () => {
+    h.scan.mockResolvedValueOnce([{}, {}]).mockResolvedValueOnce([{}]);
+    h.applyAll.mockResolvedValue([APPLIED_FIX]);
+    const setOutput = vi.spyOn(actionsCore, 'setOutput');
+    const info = vi.spyOn(actionsCore, 'info');
+    setInputs({ mode: 'fix', dir: '.', 'github-token': 'tok', 'base-branch': 'develop' });
+
+    const { run } = await import('./index.js');
+    await run();
+
+    expect(setOutput).toHaveBeenCalledWith('pr-url', 'https://github.com/o/r/pull/42');
+    expect(info).toHaveBeenCalledWith('Opening PR against o/r@develop...');
+    expect(info).toHaveBeenCalledWith('PR created: https://github.com/o/r/pull/42');
+  });
+
+  it('passes the current working directory as repoRoot to PullRequestBuilder', async () => {
+    h.scan.mockResolvedValueOnce([{}]).mockResolvedValueOnce([{}]);
+    h.applyAll.mockResolvedValue([APPLIED_FIX]);
+    setInputs({ mode: 'fix', dir: '.', 'github-token': 'tok', 'base-branch': 'develop' });
+
+    const { run } = await import('./index.js');
+    await run();
+
+    expect(h.prCtor).toHaveBeenCalledWith(
+      expect.objectContaining({ repoRoot: process.cwd() }),
+    );
+  });
+
+  it('defaults the PR base branch to main when base-branch is unset', async () => {
+    h.scan.mockResolvedValueOnce([{}]).mockResolvedValueOnce([{}]);
+    h.applyAll.mockResolvedValue([APPLIED_FIX]);
+    const info = vi.spyOn(actionsCore, 'info');
+    setInputs({ mode: 'fix', dir: '.', 'github-token': 'tok' });
+
+    const { run } = await import('./index.js');
+    await run();
+
+    expect(h.prCtor).toHaveBeenCalledWith(
+      expect.objectContaining({ baseBranch: 'main' }),
+    );
+    expect(info).toHaveBeenCalledWith('Opening PR against o/r@main...');
+  });
+
+  it('fails the run (and sets no pr-url) when createPR rejects', async () => {
+    h.scan.mockResolvedValueOnce([{}]).mockResolvedValueOnce([{}]);
+    h.applyAll.mockResolvedValue([APPLIED_FIX]);
+    h.createPR.mockRejectedValueOnce(new Error('boom'));
+    const setFailed = vi.spyOn(actionsCore, 'setFailed');
+    const setOutput = vi.spyOn(actionsCore, 'setOutput');
+    setInputs({ mode: 'fix', dir: '.', 'github-token': 'tok' });
+
+    const { run } = await import('./index.js');
+    await expect(run()).resolves.toBeUndefined();
+
+    expect(setFailed).toHaveBeenCalledWith('boom');
+    expect(setOutput).not.toHaveBeenCalledWith('pr-url', expect.anything());
+  });
+
   it('does not open a PR when nothing was applied', async () => {
     h.scan.mockResolvedValue([{}]);
     h.applyAll.mockResolvedValue([{ wcagId: '1.1.1', description: 'x', applied: false, humanNote: 'review' }]);
