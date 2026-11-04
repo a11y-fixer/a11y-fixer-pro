@@ -66,6 +66,16 @@ runs:
     - id: chrome
       uses: browser-actions/setup-chrome@v1
 
+    # @a11y-fixer/core builds its ESLint scanner with createRequire() at scan
+    # time, so eslint / eslint-plugin-jsx-a11y / @typescript-eslint/parser /
+    # typescript resolve against the filesystem next to dist/index.js and ncc
+    # cannot bundle them. Install them beside the bundle before running. The
+    # dependency set lives in one place (the script below) so it can't drift
+    # from the CI regression test (scripts/test-action-bundle.sh).
+    - id: deps
+      shell: bash
+      run: bash "$GITHUB_ACTION_PATH/scripts/install-action-runtime-deps.sh" "$GITHUB_ACTION_PATH/packages/github-action"
+
     # The bundled Node entry reads inputs from the INPUT_* env vars @actions/core
     # expects (a composite action does not inject them automatically), and points
     # puppeteer-core at the Chrome installed above.

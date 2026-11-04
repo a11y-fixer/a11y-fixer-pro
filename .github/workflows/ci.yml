@@ -38,3 +38,24 @@ jobs:
             git --no-pager diff --stat -- packages/github-action/dist
             exit 1
           fi
+
+  # Runs the committed bundle the way a consumer's workflow does — isolated, no
+  # workspace node_modules on the resolution path — so the createRequire()
+  # runtime deps that ncc can't bundle must actually be installed. Deliberately
+  # does NOT run `pnpm install`, which would leak the workspace node_modules and
+  # mask the exact failure this guards against.
+  action-bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run committed action bundle in isolation
+        env:
+          # Needed to mint a license (the ESLint scanner is only built after the
+          # license check). Absent on forks → the script soft-skips.
+          LICENSE_SIGNING_KEY: ${{ secrets.LICENSE_SIGNING_KEY }}
+        run: bash scripts/test-action-bundle.sh
