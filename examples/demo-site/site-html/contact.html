@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Northwind Analytics — Contact</title>
+  </head>
+  <body>
+    <header>
+      <!-- VIOLATION (button-name / WCAG 4.1.2): icon-only menu button. -->
+      <button class="menu-toggle"><svg width="24" height="24" aria-hidden="true"><use href="#icon-menu" /></svg></button>
+      <nav aria-label="Primary">
+        <a href="/index.html">Home</a>
+        <a href="/pricing.html">Pricing</a>
+        <a href="/contact.html">Contact</a>
+      </nav>
+    </header>
+
+    <main>
+      <h1>Talk to our team</h1>
+
+      <form action="/submit" method="post">
+        <!-- VIOLATION (label / WCAG 1.3.1): inputs have no associated label and
+             no aria-label. (No placeholder either — axe treats a placeholder as
+             a possible name and only flags it as "needs review", not a hard
+             violation.) FormLabelFixer adds an aria-label to each. -->
+        <input type="text" name="name" />
+        <input type="email" name="email" />
+        <textarea name="message"></textarea>
+        <button type="submit">Send message</button>
+      </form>
+    </main>
+
+    <footer>
+      <p>&copy; 2026 Northwind Analytics, Inc.</p>
+      <ul class="social">
+        <!-- VIOLATION (link-name / WCAG 2.4.4): icon-only social links. -->
+        <li><a href="https://twitter.com/northwind"><svg width="20" height="20" aria-hidden="true"><use href="#icon-twitter" /></svg></a></li>
+        <li><a href="https://github.com/northwind"><svg width="20" height="20" aria-hidden="true"><use href="#icon-github" /></svg></a></li>
+      </ul>
+    </footer>
+  </body>
+</html>

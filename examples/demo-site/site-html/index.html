@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Northwind Analytics — Home</title>
+  </head>
+  <body>
+    <header>
+      <!-- VIOLATION (button-name / WCAG 4.1.2): icon-only menu button has no
+           accessible name (the SVG is aria-hidden, no text). ButtonNameFixer
+           adds an aria-label. -->
+      <button class="menu-toggle"><svg width="24" height="24" aria-hidden="true"><use href="#icon-menu" /></svg></button>
+      <nav aria-label="Primary">
+        <a href="/index.html">Home</a>
+        <a href="/pricing.html">Pricing</a>
+        <a href="/contact.html">Contact</a>
+      </nav>
+    </header>
+
+    <main>
+      <!-- VIOLATION (image-alt / WCAG 1.1.1): hero image has no alt text.
+           AltTextFixer adds a descriptive alt. -->
+      <img class="hero" src="/images/dashboard-hero.png" width="960" height="420" />
+
+      <h1>See every metric that matters, in one place</h1>
+      <p>
+        Northwind Analytics turns your product and billing data into dashboards
+        your whole team can read. No SQL required.
+      </p>
+      <a class="cta" href="/pricing.html">Start your free trial</a>
+    </main>
+
+    <footer>
+      <p>&copy; 2026 Northwind Analytics, Inc.</p>
+      <ul class="social">
+        <!-- VIOLATION (link-name / WCAG 2.4.4): icon-only social links have no
+             accessible name. LinkNameFixer adds an aria-label. -->
+        <li><a href="https://twitter.com/northwind"><svg width="20" height="20" aria-hidden="true"><use href="#icon-twitter" /></svg></a></li>
+        <li><a href="https://github.com/northwind"><svg width="20" height="20" aria-hidden="true"><use href="#icon-github" /></svg></a></li>
+      </ul>
+    </footer>
+  </body>
+</html>

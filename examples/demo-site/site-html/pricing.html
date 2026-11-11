@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Northwind Analytics — Pricing</title>
+  </head>
+  <body>
+    <header>
+      <!-- VIOLATION (button-name / WCAG 4.1.2): icon-only menu button. -->
+      <button class="menu-toggle"><svg width="24" height="24" aria-hidden="true"><use href="#icon-menu" /></svg></button>
+      <nav aria-label="Primary">
+        <a href="/index.html">Home</a>
+        <a href="/pricing.html">Pricing</a>
+        <a href="/contact.html">Contact</a>
+      </nav>
+    </header>
+
+    <main>
+      <h1>Simple, usage-based pricing</h1>
+
+      <!-- VIOLATION (image-alt / WCAG 1.1.1): comparison chart has no alt. -->
+      <img class="plans" src="/images/plan-comparison.png" width="800" height="300" />
+
+      <section>
+        <h2>Team</h2>
+        <p>$49 / month — up to 10 seats and 90 days of history.</p>
+        <a class="cta" href="/contact.html">Talk to sales</a>
+      </section>
+    </main>
+
+    <footer>
+      <p>&copy; 2026 Northwind Analytics, Inc.</p>
+      <ul class="social">
+        <!-- VIOLATION (link-name / WCAG 2.4.4): icon-only social links. -->
+        <li><a href="https://twitter.com/northwind"><svg width="20" height="20" aria-hidden="true"><use href="#icon-twitter" /></svg></a></li>
+        <li><a href="https://github.com/northwind"><svg width="20" height="20" aria-hidden="true"><use href="#icon-github" /></svg></a></li>
+      </ul>
+    </footer>
+  </body>
+</html>
