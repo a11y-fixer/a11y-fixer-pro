@@ -31,6 +31,16 @@ Store your license key as a repository (or org) secret. Without a valid key the
 action fails fast with a clear message. See [`action.yml`](./action.yml) for all
 inputs and outputs.
 
+### Try it on the demo site
+
+[`examples/demo-site/`](./examples/demo-site/) is a deliberately-broken site for
+demoing the Action end-to-end. Its `seed.sh` publishes it to a standalone GitHub
+repo where the workflow opens real fix PRs. Fix mode runs **one scan path per
+run**, so the demo ships two jobs: a static-HTML site (`html: true`) that
+auto-fixes alt-text, link-name, button-name and form-label, and a JSX page that
+auto-fixes alt-text and human-flags link-text. The broken state lives on `main`
+and each run opens a throwaway PR, so the demo is repeatable without re-cloning.
+
 ## AI cost controls
 
 Identical AI requests (the same repeated "click here" link, the same logo image

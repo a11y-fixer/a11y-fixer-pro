@@ -118,9 +118,14 @@ describe('AI fixer pipeline (real core, fake provider)', () => {
   it('dispatches each violation to the right fixer (AI-assisted claim shared WCAG ids)', () => {
     const registry = buildFullRegistry(fakeProvider, dir);
     expect(registry.getFixer(violation('image-alt', '1.1.1', 4))).toBeInstanceOf(AltTextFixer);
+    // Empty JSX anchors surface as anchor-has-content (2.4.4) → LinkTextFixer.
     expect(registry.getFixer(violation('anchor-has-content', '2.4.4', 5))).toBeInstanceOf(LinkTextFixer);
     expect(registry.getFixer(violation('button-name', '4.1.2', 6))).toBeInstanceOf(ButtonNameFixer);
-    expect(registry.getFixer(violation('link-name', '4.1.2', 5))).toBeInstanceOf(LinkNameFixer);
+    // Core maps axe `link-name` to wcagId 2.4.4 (the same id LinkTextFixer
+    // claims), so this is the shadowing regression guard: LinkNameFixer must be
+    // consulted before LinkTextFixer. Using the real wcagId core emits — not a
+    // synthetic 4.1.2 — is what makes this test meaningful.
+    expect(registry.getFixer(violation('link-name', '2.4.4', 5))).toBeInstanceOf(LinkNameFixer);
     expect(registry.getFixer(violation('label', '1.3.1', 7))).toBeInstanceOf(FormLabelFixer);
   });
 
