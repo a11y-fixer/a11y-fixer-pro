@@ -6,6 +6,9 @@ import { AltTextFixer } from './alt-text.js';
 import { LinkNameFixer } from './link-name.js';
 import { ButtonNameFixer } from './button-name.js';
 import { FormLabelFixer } from './form-label.js';
+import { SelectNameFixer } from './select-name.js';
+import { InputButtonNameFixer } from './input-button-name.js';
+import { InputImageAltFixer } from './input-image-alt.js';
 import type { AIProvider } from '../provider/index.js';
 
 const provider: AIProvider = {
@@ -44,6 +47,21 @@ describe('buildFullRegistry dispatch', () => {
 
   it('routes axe label (WCAG 1.3.1) to FormLabelFixer, not EslintFixer', () => {
     expect(registry.getFixer(violation('label', '1.3.1'))).toBeInstanceOf(FormLabelFixer);
+  });
+
+  it('routes axe select-name to SelectNameFixer', () => {
+    expect(registry.getFixer(violation('select-name', 'select-name'))).toBeInstanceOf(SelectNameFixer);
+  });
+
+  it('routes axe input-button-name to InputButtonNameFixer', () => {
+    expect(registry.getFixer(violation('input-button-name', 'input-button-name'))).toBeInstanceOf(InputButtonNameFixer);
+  });
+
+  it('routes axe input-image-alt to InputImageAltFixer, not AltTextFixer', () => {
+    // Unmapped in core, so wcagId is the raw id; even if core later maps it to
+    // 1.1.1, InputImageAltFixer is registered first and still wins.
+    expect(registry.getFixer(violation('input-image-alt', 'input-image-alt'))).toBeInstanceOf(InputImageAltFixer);
+    expect(registry.getFixer(violation('input-image-alt', '1.1.1'))).toBeInstanceOf(InputImageAltFixer);
   });
 
   it('still routes deterministic axe html-has-lang (WCAG 3.1.1) to HtmlLangFixer', () => {
