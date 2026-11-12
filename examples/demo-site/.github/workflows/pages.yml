@@ -1,0 +1,40 @@
+name: Deploy demo site to Pages
+
+# Publishes the static HTML site (site-html/) to GitHub Pages so you can view
+# the deliberately-broken "before" site in a browser. One-time setup: in the
+# demo repo, Settings → Pages → Build and deployment → Source = "GitHub Actions".
+#
+# This serves whatever is on main — the broken site. The a11y-fixer Action opens
+# its fixes as PRs and never pushes to main, so the hosted page stays broken
+# until you merge a fix PR (handy for before/after).
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Let a running deploy finish; don't pile up concurrent Pages deploys.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          # Only the static HTML site is a real web page; site-jsx/ is a source
+          # fixture for the scanner, not a built app.
+          path: site-html
+      - id: deployment
+        uses: actions/deploy-pages@v4
