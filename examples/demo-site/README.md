@@ -57,6 +57,24 @@ Together they cover all fourteen AI fixers.
    `ANTHROPIC_API_KEY` secrets, and enable "Read and write permissions" +
    "Allow GitHub Actions to create and approve pull requests" under
    Settings → Actions → General.
+3. (Optional) To view the broken site in a browser, enable Pages:
+   Settings → Pages → Build and deployment → Source = "GitHub Actions". The
+   `pages.yml` workflow then publishes `site-html/` to
+   `https://<owner>.github.io/a11y-fixer-demo/` on every push to `main`.
+
+## View the site in a browser
+
+No build is needed for the static HTML — open it locally:
+
+```sh
+open site-html/index.html
+```
+
+Or, once Pages is enabled (step 3 above), visit the published URL. It serves
+whatever is on `main` — the broken site — so it's the "before". Fix mode only
+opens PRs and never pushes to `main`, so the hosted page stays broken until you
+merge a fix PR. `site-jsx/` is a scanner fixture, not a built app, so it has no
+browser view.
 
 ## Running the demo (repeatably)
 
