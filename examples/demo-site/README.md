@@ -15,10 +15,10 @@ paths surface different rules. So the demo ships both, wired as two jobs in
 
 | Job | Dir | Path | Fixers exercised |
 |-----|-----|------|------------------|
-| `html-demo` | `site-html/` | static HTML (axe-core, `html: true`) | **alt-text**, **link-name**, **button-name**, **form-label**, **select-name**, **input-button-name**, **input-image-alt** — 7 auto-applied |
+| `html-demo` | `site-html/` | static HTML (axe-core, `html: true`) | **alt-text**, **link-name**, **button-name**, **form-label**, **select-name**, **input-button-name**, **input-image-alt**, **area-alt**, **object-alt**, **svg-img-alt**, **aria-command-name**, **aria-input-field-name**, **aria-toggle-field-name** — 13 auto-applied |
 | `jsx-demo` | `site-jsx/` | JSX (ESLint + jsx-a11y) | **alt-text** (auto), **link-text** (human-flagged) |
 
-Together they cover all eight AI fixers.
+Together they cover all fourteen AI fixers.
 
 ## The planted violations
 
@@ -33,6 +33,12 @@ Together they cover all eight AI fixers.
 | unlabeled `<select>` | select-name / 4.1.2 | SelectNameFixer → adds `aria-label` |
 | `<input type="submit">` with no value | input-button-name / 4.1.2 | InputButtonNameFixer → adds `aria-label` |
 | `<input type="image">` with no `alt` | input-image-alt / 1.1.1 | InputImageAltFixer → adds `alt="…"` |
+| `<area>` in an image map with no `alt` | area-alt / 1.1.1 | AreaAltFixer → adds `alt="…"` |
+| `<object>` with no text alternative | object-alt / 1.1.1 | ObjectAltFixer → adds `aria-label` |
+| `<svg role="img">` with no name | svg-img-alt / 1.1.1 | SvgImgAltFixer → adds `aria-label` |
+| `<div role="button">` with no name | aria-command-name / 4.1.2 | AriaCommandNameFixer → adds `aria-label` |
+| `<div role="textbox">` with no name | aria-input-field-name / 4.1.2 | AriaInputFieldNameFixer → adds `aria-label` |
+| `<div role="switch">` with no name | aria-toggle-field-name / 4.1.2 | AriaToggleFieldNameFixer → adds `aria-label` |
 
 `site-jsx/App.tsx`:
 
