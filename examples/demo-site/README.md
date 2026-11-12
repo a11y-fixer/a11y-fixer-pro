@@ -15,10 +15,10 @@ paths surface different rules. So the demo ships both, wired as two jobs in
 
 | Job | Dir | Path | Fixers exercised |
 |-----|-----|------|------------------|
-| `html-demo` | `site-html/` | static HTML (axe-core, `html: true`) | **alt-text**, **link-name**, **button-name**, **form-label** — 4 auto-applied |
+| `html-demo` | `site-html/` | static HTML (axe-core, `html: true`) | **alt-text**, **link-name**, **button-name**, **form-label**, **select-name**, **input-button-name**, **input-image-alt** — 7 auto-applied |
 | `jsx-demo` | `site-jsx/` | JSX (ESLint + jsx-a11y) | **alt-text** (auto), **link-text** (human-flagged) |
 
-Together they cover all five AI fixers.
+Together they cover all eight AI fixers.
 
 ## The planted violations
 
@@ -30,6 +30,9 @@ Together they cover all five AI fixers.
 | icon-only `<a>` (social links) | link-name / 2.4.4 | LinkNameFixer → adds `aria-label` |
 | icon-only `<button>` (menu toggle) | button-name / 4.1.2 | ButtonNameFixer → adds `aria-label` |
 | unlabeled `<input>`/`<textarea>` | label / 1.3.1 | FormLabelFixer → adds `aria-label` |
+| unlabeled `<select>` | select-name / 4.1.2 | SelectNameFixer → adds `aria-label` |
+| `<input type="submit">` with no value | input-button-name / 4.1.2 | InputButtonNameFixer → adds `aria-label` |
+| `<input type="image">` with no `alt` | input-image-alt / 1.1.1 | InputImageAltFixer → adds `alt="…"` |
 
 `site-jsx/App.tsx`:
 
@@ -55,7 +58,7 @@ Together they cover all five AI fixers.
 gh workflow run "a11y-fixer demo" --repo <owner>/a11y-fixer-demo
 ```
 
-`html-demo` opens a PR adding the four attributes above; `jsx-demo` opens a PR
+`html-demo` opens a PR adding the attributes above; `jsx-demo` opens a PR
 with the alt-text fix and the link-text violation flagged for a human.
 
 **You never need to re-clone or reset `main`.** Fix mode applies fixes to the CI

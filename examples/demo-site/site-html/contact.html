@@ -27,7 +27,21 @@
         <input type="text" name="name" />
         <input type="email" name="email" />
         <textarea name="message"></textarea>
-        <button type="submit">Send message</button>
+
+        <!-- VIOLATION (select-name / WCAG 4.1.2): <select> with no associated
+             label and no aria-label. SelectNameFixer adds an aria-label. -->
+        <select name="topic">
+          <option value="sales">Sales</option>
+          <option value="support">Support</option>
+        </select>
+
+        <!-- VIOLATION (input-button-name / WCAG 4.1.2): submit input with no
+             value/aria-label. InputButtonNameFixer adds an aria-label. -->
+        <input type="submit" />
+
+        <!-- VIOLATION (input-image-alt / WCAG 1.1.1): image button with no alt.
+             InputImageAltFixer adds an alt attribute. -->
+        <input type="image" src="/icons/send.png" />
       </form>
     </main>
 

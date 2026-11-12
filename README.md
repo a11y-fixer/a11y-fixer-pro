@@ -37,8 +37,9 @@ inputs and outputs.
 demoing the Action end-to-end. Its `seed.sh` publishes it to a standalone GitHub
 repo where the workflow opens real fix PRs. Fix mode runs **one scan path per
 run**, so the demo ships two jobs: a static-HTML site (`html: true`) that
-auto-fixes alt-text, link-name, button-name and form-label, and a JSX page that
-auto-fixes alt-text and human-flags link-text. The broken state lives on `main`
+auto-fixes alt-text, link-name, button-name, form-label, select-name,
+input-button-name and input-image-alt, and a JSX page that auto-fixes alt-text
+and human-flags link-text. The broken state lives on `main`
 and each run opens a throwaway PR, so the demo is repeatable without re-cloning.
 
 ## AI cost controls
@@ -69,8 +70,9 @@ so the cache is reused until the code changes:
 ## Packages
 
 - **`packages/ai`** (`@a11y-fixer/ai`) — Anthropic provider + AI-assisted fixers
-  (alt text, link text, button name, form label) and `buildFullRegistry`, which
-  layers them ahead of the deterministic core fixers.
+  (alt text, link text, button name, form label, link name, select name, input
+  button name, input image alt) and `buildFullRegistry`, which layers them ahead
+  of the deterministic core fixers.
 - **`packages/github-action`** (`@a11y-fixer/github-action`) — the composite
   Action. `action.yml` (repo root) runs the bundled
   `packages/github-action/dist/index.js`; `src/license.ts` enforces the key.
