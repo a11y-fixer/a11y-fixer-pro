@@ -27,6 +27,30 @@
         <p>$49 / month — up to 10 seats and 90 days of history.</p>
         <a class="cta" href="/contact.html">Talk to sales</a>
       </section>
+
+      <section>
+        <h2>Interactive region map</h2>
+        <img src="/images/regions.png" width="400" height="200" alt="Service regions" usemap="#regions" />
+        <map name="regions">
+          <!-- VIOLATION (area-alt / WCAG 1.1.1): image-map area with no alt. -->
+          <area shape="rect" coords="0,0,200,200" href="/pricing.html#west" />
+        </map>
+
+        <!-- VIOLATION (object-alt / WCAG 1.1.1): embedded object with no text alternative. -->
+        <object data="/files/pricing-sheet.pdf" type="application/pdf" width="400" height="300"></object>
+
+        <!-- VIOLATION (svg-img-alt / WCAG 1.1.1): graphic svg exposed as an image with no name. -->
+        <svg role="img" width="120" height="40"><rect width="120" height="40" fill="#4f46e5" /></svg>
+
+        <!-- VIOLATION (aria-command-name / WCAG 4.1.2): role=button with no accessible name. -->
+        <div role="button" tabindex="0" class="icon-expand"></div>
+
+        <!-- VIOLATION (aria-input-field-name / WCAG 4.1.2): role=textbox with no accessible name. -->
+        <div role="textbox" contenteditable="true" class="note-field"></div>
+
+        <!-- VIOLATION (aria-toggle-field-name / WCAG 4.1.2): role=switch with no accessible name. -->
+        <div role="switch" tabindex="0" aria-checked="false" class="billing-toggle"></div>
+      </section>
     </main>
 
     <footer>
