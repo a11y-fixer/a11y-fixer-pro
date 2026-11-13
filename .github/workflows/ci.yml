@@ -9,13 +9,13 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       # pnpm/action-setup reads the version from the root package.json
       # "packageManager" field, keeping CI and local in sync.
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 20
           cache: pnpm
@@ -47,15 +47,21 @@ jobs:
   action-bundle:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 20
 
       - name: Run committed action bundle in isolation
         env:
-          # Needed to mint a license (the ESLint scanner is only built after the
-          # license check). Absent on forks → the script soft-skips.
-          LICENSE_SIGNING_KEY: ${{ secrets.LICENSE_SIGNING_KEY }}
+          # The private license-signing key mints keys, so it is the single most
+          # sensitive secret in the product. Only expose it on trusted events
+          # (push to main, release) — NEVER on pull_request, which includes
+          # same-repo PR branches a compromised collaborator could push. On PRs
+          # the key is empty and test-action-bundle.sh soft-skips the mint step
+          # while still exercising the rest of the bundle. The full path runs on
+          # push to main after merge. Harden further by moving the secret into a
+          # GitHub Environment with required reviewers.
+          LICENSE_SIGNING_KEY: ${{ github.event_name != 'pull_request' && secrets.LICENSE_SIGNING_KEY || '' }}
         run: bash scripts/test-action-bundle.sh

@@ -12,8 +12,12 @@
 #
 # Usage: install-action-runtime-deps.sh <dir-containing-the-action-package>
 #
-# Version ranges mirror @a11y-fixer/core's own `dependencies`
-# (`npm view @a11y-fixer/core dependencies`). Notes:
+# Versions mirror @a11y-fixer/core's own `dependencies`
+# (`npm view @a11y-fixer/core dependencies`) but are pinned EXACT, not ranged:
+# this script runs in the consumer's CI on every run, so a caret range would let
+# a freshly-published (possibly compromised) release float into customer CI
+# alongside their secrets. Bump these deliberately when core's ranges move.
+# Notes:
 #   --legacy-peer-deps: eslint-plugin-jsx-a11y@6 still declares its eslint peer
 #     as "<=9", while core runs eslint 10. pnpm tolerates this mismatch (that's
 #     why the workspace works); npm refuses without this flag.
@@ -23,7 +27,7 @@ set -euo pipefail
 cd "${1:?usage: install-action-runtime-deps.sh <target-dir>}"
 
 npm install --no-save --no-audit --no-fund --omit=dev --legacy-peer-deps \
-  eslint@^10.13.0 \
-  eslint-plugin-jsx-a11y@^6.10.2 \
-  @typescript-eslint/parser@^8.72.0 \
-  typescript@^5.5.0
+  eslint@10.14.0 \
+  eslint-plugin-jsx-a11y@6.10.2 \
+  @typescript-eslint/parser@8.72.2 \
+  typescript@5.9.3

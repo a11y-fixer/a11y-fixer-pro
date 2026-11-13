@@ -21,11 +21,11 @@ jobs:
   html-demo:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       # Persist the AI cache across runs so repeated demos don't re-spend on
       # Anthropic. Keyed on the HTML source so it's reused until the site changes.
-      - uses: actions/cache@v4
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: .a11y-fixer-cache.json
           key: a11y-fixer-ai-html-${{ hashFiles('site-html/**') }}
@@ -46,9 +46,9 @@ jobs:
   jsx-demo:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: .a11y-fixer-cache.json
           key: a11y-fixer-ai-jsx-${{ hashFiles('site-jsx/**') }}

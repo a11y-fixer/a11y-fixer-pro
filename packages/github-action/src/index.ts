@@ -59,8 +59,16 @@ async function maybeOpenPR(
 export async function run(): Promise<void> {
   const dir = core.getInput('dir') || '.';
   const mode = core.getInput('mode') || 'check';
+  const licenseKey = core.getInput('license-key');
   const githubToken = core.getInput('github-token');
   const anthropicKey = core.getInput('anthropic-api-key');
+  // Defensively register every credential for log masking. GitHub already masks
+  // values sourced from `secrets.*`, but this also redacts them if a caller
+  // passes a literal, and masks any substring that leaks into a transformed
+  // value or error message the action prints.
+  if (licenseKey) core.setSecret(licenseKey);
+  if (githubToken) core.setSecret(githubToken);
+  if (anthropicKey) core.setSecret(anthropicKey);
   const url = core.getInput('url');
   // getInput, not getBooleanInput: the latter throws when the input is absent
   // (e.g. older workflow files that predate this option).
@@ -89,7 +97,7 @@ export async function run(): Promise<void> {
 
   // This is paid, source-available software: a valid license key is required to
   // run it. The free, deterministic engine lives in @a11y-fixer/cli on npm.
-  const license = verifyLicenseKey(core.getInput('license-key'));
+  const license = verifyLicenseKey(licenseKey);
   if (!license.valid) {
     core.setFailed(
       `a11y-fixer-pro requires a valid license key: ${license.reason}. ` +
@@ -99,7 +107,9 @@ export async function run(): Promise<void> {
     );
     return;
   }
-  core.info(`License valid for ${license.subject} (expires ${new Date((license.expires ?? 0) * 1000).toISOString().slice(0, 10)}).`);
+  // Don't echo license.subject (a customer id/email) into CI logs — only the
+  // non-identifying expiry date.
+  core.info(`License valid (expires ${new Date((license.expires ?? 0) * 1000).toISOString().slice(0, 10)}).`);
 
   if (anthropicKey) process.env['ANTHROPIC_API_KEY'] = anthropicKey;
   if (githubToken) process.env['GITHUB_TOKEN'] = githubToken;
