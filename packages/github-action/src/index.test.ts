@@ -18,6 +18,12 @@ vi.mock('@actions/github', () => ({
   context: { repo: { owner: 'o', repo: 'r' } },
 }));
 
+// vitest >=3 forbids vi.spyOn on live ESM namespace exports (they are
+// non-configurable). `{ spy: true }` auto-wraps every @actions/core export in a
+// spy while keeping its real implementation, so getInput still reads INPUT_*
+// env vars and we can assert on setOutput/info/warning/setFailed via vi.mocked.
+vi.mock('@actions/core', { spy: true });
+
 vi.mock('./cookies-scanner.js', () => ({
   scanWithCookies: (...args: unknown[]) => h.scanWithCookies(...args),
 }));
@@ -152,8 +158,8 @@ describe('github-action fix mode', () => {
   it('wires the PR url to the pr-url output and logs the PR lifecycle', async () => {
     h.scan.mockResolvedValueOnce([{}, {}]).mockResolvedValueOnce([{}]);
     h.applyAll.mockResolvedValue([APPLIED_FIX]);
-    const setOutput = vi.spyOn(actionsCore, 'setOutput');
-    const info = vi.spyOn(actionsCore, 'info');
+    const setOutput = vi.mocked(actionsCore.setOutput);
+    const info = vi.mocked(actionsCore.info);
     setInputs({ mode: 'fix', dir: '.', 'github-token': 'tok', 'base-branch': 'develop' });
 
     const { run } = await import('./index.js');
@@ -180,7 +186,7 @@ describe('github-action fix mode', () => {
   it('defaults the PR base branch to main when base-branch is unset', async () => {
     h.scan.mockResolvedValueOnce([{}]).mockResolvedValueOnce([{}]);
     h.applyAll.mockResolvedValue([APPLIED_FIX]);
-    const info = vi.spyOn(actionsCore, 'info');
+    const info = vi.mocked(actionsCore.info);
     setInputs({ mode: 'fix', dir: '.', 'github-token': 'tok' });
 
     const { run } = await import('./index.js');
@@ -196,8 +202,8 @@ describe('github-action fix mode', () => {
     h.scan.mockResolvedValueOnce([{}]).mockResolvedValueOnce([{}]);
     h.applyAll.mockResolvedValue([APPLIED_FIX]);
     h.createPR.mockRejectedValueOnce(new Error('boom'));
-    const setFailed = vi.spyOn(actionsCore, 'setFailed');
-    const setOutput = vi.spyOn(actionsCore, 'setOutput');
+    const setFailed = vi.mocked(actionsCore.setFailed);
+    const setOutput = vi.mocked(actionsCore.setOutput);
     setInputs({ mode: 'fix', dir: '.', 'github-token': 'tok' });
 
     const { run } = await import('./index.js');
@@ -233,7 +239,7 @@ describe('github-action fix mode', () => {
     h.scan.mockResolvedValue([{}]);
     // Applied, but with no sourceLocation → dedupeFixFiles yields [].
     h.applyAll.mockResolvedValue([{ wcagId: '4.1.2', description: 'x', applied: true }]);
-    const info = vi.spyOn(actionsCore, 'info');
+    const info = vi.mocked(actionsCore.info);
     setInputs({ mode: 'fix', dir: '.', 'github-token': 'tok' });
 
     const { run } = await import('./index.js');
@@ -269,7 +275,7 @@ describe('github-action fix mode', () => {
   it('warns and ignores url in fix mode (static-only)', async () => {
     h.scan.mockResolvedValue([]);
     h.applyAll.mockResolvedValue([]);
-    const warning = vi.spyOn(actionsCore, 'warning');
+    const warning = vi.mocked(actionsCore.warning);
     setInputs({ mode: 'fix', dir: '.', url: 'https://example.com', 'github-token': 'tok' });
 
     const { run } = await import('./index.js');
@@ -285,7 +291,7 @@ describe('github-action fix mode', () => {
 describe('github-action check mode', () => {
   it('fails the run and lists violations when any are found', async () => {
     h.scan.mockResolvedValue([{ wcagId: '1.1.1', description: 'Image missing alt' }]);
-    const setFailed = vi.spyOn(actionsCore, 'setFailed');
+    const setFailed = vi.mocked(actionsCore.setFailed);
     setInputs({ mode: 'check', dir: '.' });
 
     const { run } = await import('./index.js');
@@ -297,8 +303,8 @@ describe('github-action check mode', () => {
 
   it('passes when no violations are found', async () => {
     h.scan.mockResolvedValue([]);
-    const setFailed = vi.spyOn(actionsCore, 'setFailed');
-    const info = vi.spyOn(actionsCore, 'info');
+    const setFailed = vi.mocked(actionsCore.setFailed);
+    const info = vi.mocked(actionsCore.info);
     setInputs({ mode: 'check', dir: '.' });
 
     const { run } = await import('./index.js');
@@ -313,7 +319,7 @@ describe('github-action scan mode', () => {
   it('outputs the violations JSON', async () => {
     const violations = [{ wcagId: '1.4.3', description: 'contrast' }];
     h.scan.mockResolvedValue(violations);
-    const setOutput = vi.spyOn(actionsCore, 'setOutput');
+    const setOutput = vi.mocked(actionsCore.setOutput);
     setInputs({ mode: 'scan', dir: '.' });
 
     const { run } = await import('./index.js');
@@ -359,7 +365,7 @@ describe('github-action cookies support', () => {
   });
 
   it('fails early with a clear message when cookies JSON is invalid', async () => {
-    const setFailed = vi.spyOn(actionsCore, 'setFailed');
+    const setFailed = vi.mocked(actionsCore.setFailed);
     setInputs({ mode: 'scan', dir: '.', url: 'https://example.com', cookies: 'not-json' });
 
     const { run } = await import('./index.js');
@@ -370,7 +376,7 @@ describe('github-action cookies support', () => {
   });
 
   it('never echoes the raw cookies input into the failure message', async () => {
-    const setFailed = vi.spyOn(actionsCore, 'setFailed');
+    const setFailed = vi.mocked(actionsCore.setFailed);
     // Malformed JSON (trailing comma) that still carries a session token.
     setInputs({
       mode: 'scan',
@@ -389,7 +395,7 @@ describe('github-action cookies support', () => {
 
   it('masks every cookie value as a secret before scanning', async () => {
     h.scanWithCookies.mockResolvedValue([]);
-    const setSecret = vi.spyOn(actionsCore, 'setSecret');
+    const setSecret = vi.mocked(actionsCore.setSecret);
     const twoCookies = [
       { name: 'session', value: 'tok-aaa', domain: 'example.com' },
       { name: 'csrf', value: 'tok-bbb', domain: 'example.com' },
@@ -406,7 +412,7 @@ describe('github-action cookies support', () => {
   it('warns and ignores cookies in fix mode', async () => {
     h.scan.mockResolvedValue([]);
     h.applyAll.mockResolvedValue([]);
-    const warning = vi.spyOn(actionsCore, 'warning');
+    const warning = vi.mocked(actionsCore.warning);
     setInputs({ mode: 'fix', dir: '.', url: 'https://example.com', cookies: JSON.stringify(COOKIES), 'github-token': 'tok' });
 
     const { run } = await import('./index.js');
@@ -419,7 +425,7 @@ describe('github-action cookies support', () => {
 
   it('warns when cookies is set without url', async () => {
     h.scan.mockResolvedValue([]);
-    const warning = vi.spyOn(actionsCore, 'warning');
+    const warning = vi.mocked(actionsCore.warning);
     setInputs({ mode: 'scan', dir: '.', cookies: JSON.stringify(COOKIES) });
 
     const { run } = await import('./index.js');
@@ -433,7 +439,7 @@ describe('github-action cookies support', () => {
 describe('github-action error handling', () => {
   it('calls setFailed with the error message when a scan throws', async () => {
     h.scan.mockRejectedValue(new Error('scan exploded'));
-    const setFailed = vi.spyOn(actionsCore, 'setFailed');
+    const setFailed = vi.mocked(actionsCore.setFailed);
     setInputs({ mode: 'check', dir: '.' });
 
     const { run } = await import('./index.js');
@@ -446,7 +452,7 @@ describe('github-action error handling', () => {
 describe('github-action license gating', () => {
   it('fails and does nothing when no license key is provided', async () => {
     delete process.env['INPUT_LICENSE-KEY'];
-    const setFailed = vi.spyOn(actionsCore, 'setFailed');
+    const setFailed = vi.mocked(actionsCore.setFailed);
     setInputs({ mode: 'check', dir: '.' });
 
     const { run } = await import('./index.js');
@@ -458,7 +464,7 @@ describe('github-action license gating', () => {
 
   it('fails when the license key is invalid', async () => {
     process.env['INPUT_LICENSE-KEY'] = 'garbage.token';
-    const setFailed = vi.spyOn(actionsCore, 'setFailed');
+    const setFailed = vi.mocked(actionsCore.setFailed);
     setInputs({ mode: 'fix', dir: '.', 'github-token': 'tok' });
 
     const { run } = await import('./index.js');

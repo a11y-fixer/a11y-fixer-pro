@@ -36,3 +36,9 @@ updates:
     groups:
       npm:
         patterns: ['*']
+    ignore:
+      # TypeScript 7 is the native (Go) compiler rewrite; @vercel/ncc's ts-loader
+      # cannot consume it yet (ncc build crashes in findConfigFile). Stay on 5.x
+      # until ncc supports TS 7. Remove this once ncc ships TS 7 compatibility.
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']
