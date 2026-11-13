@@ -28,6 +28,13 @@ inputs:
   url:
     description: 'URL to scan with axe-core (optional). Honored in scan/check mode only — fix mode is static JSX/HTML, since live URLs can not be mapped back to source.'
     required: false
+  cookies:
+    description: >
+      JSON array of cookies to inject before scanning the `url` (e.g. session
+      cookies from an authenticated portal). Each entry requires `name`, `value`,
+      and `domain`. Grab them from browser DevTools → Application → Cookies.
+      Ignored when `url` is not set.
+    required: false
   html:
     description: 'Scan static .html/.htm files with axe-core instead of JSX'
     required: false
@@ -89,6 +96,7 @@ runs:
         INPUT_GITHUB-TOKEN: ${{ inputs.github-token }}
         INPUT_ANTHROPIC-API-KEY: ${{ inputs.anthropic-api-key }}
         INPUT_URL: ${{ inputs.url }}
+        INPUT_COOKIES: ${{ inputs.cookies }}
         INPUT_HTML: ${{ inputs.html }}
         INPUT_BASE-BRANCH: ${{ inputs.base-branch }}
         INPUT_CACHE-FILE: ${{ inputs.cache-file }}
