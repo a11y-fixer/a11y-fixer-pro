@@ -369,6 +369,40 @@ describe('github-action cookies support', () => {
     expect(h.scanWithCookies).not.toHaveBeenCalled();
   });
 
+  it('never echoes the raw cookies input into the failure message', async () => {
+    const setFailed = vi.spyOn(actionsCore, 'setFailed');
+    // Malformed JSON (trailing comma) that still carries a session token.
+    setInputs({
+      mode: 'scan',
+      dir: '.',
+      url: 'https://example.com',
+      cookies: '[{"name":"s","value":"SUPER_SECRET_TOKEN", ,}]',
+    });
+
+    const { run } = await import('./index.js');
+    await run();
+
+    expect(setFailed).toHaveBeenCalledWith(expect.stringContaining('Invalid `cookies` input'));
+    expect(setFailed).toHaveBeenCalledWith(expect.not.stringContaining('SUPER_SECRET_TOKEN'));
+    expect(h.scanWithCookies).not.toHaveBeenCalled();
+  });
+
+  it('masks every cookie value as a secret before scanning', async () => {
+    h.scanWithCookies.mockResolvedValue([]);
+    const setSecret = vi.spyOn(actionsCore, 'setSecret');
+    const twoCookies = [
+      { name: 'session', value: 'tok-aaa', domain: 'example.com' },
+      { name: 'csrf', value: 'tok-bbb', domain: 'example.com' },
+    ];
+    setInputs({ mode: 'scan', dir: '.', url: 'https://example.com', cookies: JSON.stringify(twoCookies) });
+
+    const { run } = await import('./index.js');
+    await run();
+
+    expect(setSecret).toHaveBeenCalledWith('tok-aaa');
+    expect(setSecret).toHaveBeenCalledWith('tok-bbb');
+  });
+
   it('warns and ignores cookies in fix mode', async () => {
     h.scan.mockResolvedValue([]);
     h.applyAll.mockResolvedValue([]);
