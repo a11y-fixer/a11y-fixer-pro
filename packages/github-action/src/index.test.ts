@@ -11,10 +11,15 @@ const h = vi.hoisted(() => ({
   puppeteerCtor: vi.fn(),
   cacheCtor: vi.fn(),
   cacheSave: vi.fn(async () => {}),
+  scanWithCookies: vi.fn(),
 }));
 
 vi.mock('@actions/github', () => ({
   context: { repo: { owner: 'o', repo: 'r' } },
+}));
+
+vi.mock('./cookies-scanner.js', () => ({
+  scanWithCookies: (...args: unknown[]) => h.scanWithCookies(...args),
 }));
 
 vi.mock('@a11y-fixer/ai', () => ({
@@ -325,6 +330,69 @@ describe('github-action scan mode', () => {
     await run();
 
     expect(h.scanOpts).toHaveBeenCalledWith({ url: 'https://example.com', html: false });
+  });
+});
+
+describe('github-action cookies support', () => {
+  const COOKIES = [{ name: 'session', value: 'abc123', domain: 'example.com' }];
+
+  it('routes to cookies-scanner in scan mode when both url and cookies are set', async () => {
+    h.scanWithCookies.mockResolvedValue([]);
+    setInputs({ mode: 'scan', dir: '.', url: 'https://example.com', cookies: JSON.stringify(COOKIES) });
+
+    const { run } = await import('./index.js');
+    await run();
+
+    expect(h.scanWithCookies).toHaveBeenCalledWith(expect.any(String), { url: 'https://example.com', cookies: COOKIES });
+    expect(h.scanOpts).not.toHaveBeenCalled();
+  });
+
+  it('routes to cookies-scanner in check mode when both url and cookies are set', async () => {
+    h.scanWithCookies.mockResolvedValue([]);
+    setInputs({ mode: 'check', dir: '.', url: 'https://example.com', cookies: JSON.stringify(COOKIES) });
+
+    const { run } = await import('./index.js');
+    await run();
+
+    expect(h.scanWithCookies).toHaveBeenCalledWith(expect.any(String), { url: 'https://example.com', cookies: COOKIES });
+    expect(h.scanOpts).not.toHaveBeenCalled();
+  });
+
+  it('fails early with a clear message when cookies JSON is invalid', async () => {
+    const setFailed = vi.spyOn(actionsCore, 'setFailed');
+    setInputs({ mode: 'scan', dir: '.', url: 'https://example.com', cookies: 'not-json' });
+
+    const { run } = await import('./index.js');
+    await run();
+
+    expect(setFailed).toHaveBeenCalledWith(expect.stringContaining('Invalid `cookies` input'));
+    expect(h.scanWithCookies).not.toHaveBeenCalled();
+  });
+
+  it('warns and ignores cookies in fix mode', async () => {
+    h.scan.mockResolvedValue([]);
+    h.applyAll.mockResolvedValue([]);
+    const warning = vi.spyOn(actionsCore, 'warning');
+    setInputs({ mode: 'fix', dir: '.', url: 'https://example.com', cookies: JSON.stringify(COOKIES), 'github-token': 'tok' });
+
+    const { run } = await import('./index.js');
+    await run();
+
+    expect(warning).toHaveBeenCalledWith(expect.stringContaining('URL fix-mode is not supported'));
+    expect(h.scanWithCookies).not.toHaveBeenCalled();
+    expect(h.scanOpts).toHaveBeenCalledWith({ html: false });
+  });
+
+  it('warns when cookies is set without url', async () => {
+    h.scan.mockResolvedValue([]);
+    const warning = vi.spyOn(actionsCore, 'warning');
+    setInputs({ mode: 'scan', dir: '.', cookies: JSON.stringify(COOKIES) });
+
+    const { run } = await import('./index.js');
+    await run();
+
+    expect(warning).toHaveBeenCalledWith(expect.stringContaining('`cookies` is set but `url` is not'));
+    expect(h.scanWithCookies).not.toHaveBeenCalled();
   });
 });
 

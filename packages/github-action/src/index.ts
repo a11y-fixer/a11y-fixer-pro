@@ -7,6 +7,8 @@ import {
 } from '@a11y-fixer/core';
 import type { A11yViolation, FixResult } from '@a11y-fixer/core';
 import { buildFullRegistry, AnthropicProvider, CachingProvider } from '@a11y-fixer/ai';
+import type { CookieParam } from 'puppeteer-core';
+import { scanWithCookies } from './cookies-scanner.js';
 import { verifyLicenseKey } from './license.js';
 import path from 'node:path';
 
@@ -64,6 +66,24 @@ export async function run(): Promise<void> {
   // (e.g. older workflow files that predate this option).
   const html = core.getInput('html').toLowerCase() === 'true';
   const baseBranch = core.getInput('base-branch') || 'main';
+
+  const cookiesRaw = core.getInput('cookies');
+  let cookies: CookieParam[] | undefined;
+  if (cookiesRaw) {
+    try {
+      cookies = JSON.parse(cookiesRaw) as CookieParam[];
+    } catch {
+      core.setFailed(
+        'Invalid `cookies` input: expected a JSON array of cookie objects ' +
+        '(e.g. [{"name":"session","value":"abc","domain":"example.com"}]). ' +
+        `Could not parse: ${cookiesRaw.slice(0, 80)}`,
+      );
+      return;
+    }
+    if (!url) {
+      core.warning('`cookies` is set but `url` is not — cookies are only used with URL scanning. Ignoring.');
+    }
+  }
   // Optional persistent AI cache. Empty = per-run in-memory dedup only.
   const cacheFile = core.getInput('cache-file') || undefined;
 
@@ -88,7 +108,9 @@ export async function run(): Promise<void> {
 
   try {
     if (mode === 'check') {
-      const violations = await scanSource(rootDir, { url, html });
+      const violations = url && cookies
+        ? await scanWithCookies(rootDir, { url, cookies })
+        : await scanSource(rootDir, { url, html });
 
       if (violations.length > 0) {
         const summary = violations
@@ -99,7 +121,9 @@ export async function run(): Promise<void> {
         core.info('No accessibility violations found. ✓');
       }
     } else if (mode === 'scan') {
-      const violations = await scanSource(rootDir, { url, html });
+      const violations = url && cookies
+        ? await scanWithCookies(rootDir, { url, cookies })
+        : await scanSource(rootDir, { url, html });
       core.setOutput('violations', JSON.stringify(violations));
       core.info(`Found ${violations.length} violation(s).`);
     } else if (mode === 'fix') {
