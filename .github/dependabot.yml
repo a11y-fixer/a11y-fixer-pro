@@ -1,0 +1,38 @@
+version: 2
+
+# Keeps the SHA-pinned `uses:` refs and npm dependencies current. Actions are
+# pinned to full commit SHAs (see the workflows and action.yml); Dependabot
+# bumps those SHAs and updates the trailing `# vX` comment so pinning stays
+# maintainable instead of frozen.
+#
+# NOTE: the action's runtime deps installed by
+# scripts/install-action-runtime-deps.sh are exact-pinned by hand in that shell
+# script — Dependabot does not parse shell scripts, so bump those versions
+# manually when @a11y-fixer/core's dependency ranges move.
+updates:
+  # GitHub Actions used by this repo's own workflows + the composite action.yml.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ['*']
+
+  # GitHub Actions used by the demo site's workflows.
+  - package-ecosystem: github-actions
+    directory: /examples/demo-site
+    schedule:
+      interval: weekly
+    groups:
+      demo-actions:
+        patterns: ['*']
+
+  # npm/pnpm workspace dependencies.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      npm:
+        patterns: ['*']
