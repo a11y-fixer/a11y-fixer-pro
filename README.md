@@ -31,6 +31,34 @@ Store your license key as a repository (or org) secret. Without a valid key the
 action fails fast with a clear message. See [`action.yml`](./action.yml) for all
 inputs and outputs.
 
+## Security & pinning
+
+**What runs in your CI.** This is a composite Action: it executes our committed
+`packages/github-action/dist/index.js` in *your* runner with the secrets you pass
+it — your `anthropic-api-key`, and in `fix` mode a `github-token` with
+`contents: write` and `pull-requests: write` so it can push a branch and open a PR.
+Setup also fetches [`browser-actions/setup-chrome`](https://github.com/browser-actions/setup-chrome)
+and installs runtime deps via `scripts/install-action-runtime-deps.sh`. This is the
+standard GitHub Action trust model — the same trust you extend to any `uses:` step.
+
+**Pin to a commit SHA for stronger guarantees.** `@v1` is a *floating* major tag we
+force-move to each new release, so it is convenient but mutable. For reproducible,
+tamper-evident runs, pin to a full commit SHA instead:
+
+```yaml
+- uses: a11y-fixer/a11y-fixer-pro@<full-commit-sha>  # immutable; replaces @v1
+```
+
+[Dependabot](https://docs.github.com/code-security/dependabot)'s `github-actions`
+ecosystem can keep a pinned SHA up to date for you.
+
+**Integrity guarantee.** The committed `dist/` bundle is rebuilt and diffed against
+source on every PR in CI, and re-verified at release time before the `v1` tag is
+moved — so a pinned SHA always corresponds to reviewed source, not a hand-edited
+bundle. License verification is fully offline (Ed25519, see
+[Issuing license keys](#issuing-license-keys-maintainers)): the Action makes no
+license phone-home and sends your secrets nowhere but Anthropic and your own repo.
+
 ### Try it on the demo site
 
 [`examples/demo-site/`](./examples/demo-site/) is a deliberately-broken site for
