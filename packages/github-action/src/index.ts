@@ -80,13 +80,25 @@ export async function run(): Promise<void> {
   if (cookiesRaw) {
     try {
       cookies = JSON.parse(cookiesRaw) as CookieParam[];
-    } catch {
+    } catch (err) {
+      // Never echo any substring of the raw input: it carries live session
+      // tokens, and setFailed output lands in world-readable CI logs. Report
+      // the shape we expected and the parser's error class only.
+      const kind = err instanceof Error ? err.name : 'SyntaxError';
       core.setFailed(
         'Invalid `cookies` input: expected a JSON array of cookie objects ' +
         '(e.g. [{"name":"session","value":"abc","domain":"example.com"}]). ' +
-        `Could not parse: ${cookiesRaw.slice(0, 80)}`,
+        `JSON parse failed (${kind}).`,
       );
       return;
+    }
+    // Defensively mask every cookie value for log redaction (see the credential
+    // setSecret block above). The parsed JSON is untrusted, so guard its shape.
+    if (Array.isArray(cookies)) {
+      for (const c of cookies) {
+        const value = (c as { value?: unknown } | null)?.value;
+        if (value) core.setSecret(String(value));
+      }
     }
     if (!url) {
       core.warning('`cookies` is set but `url` is not — cookies are only used with URL scanning. Ignoring.');
