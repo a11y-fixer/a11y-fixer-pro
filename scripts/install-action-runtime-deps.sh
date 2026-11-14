@@ -30,15 +30,21 @@ cd "${1:?usage: install-action-runtime-deps.sh <target-dir>}"
 # `@a11y-fixer/ai: workspace:*`) that npm cannot parse — it aborts with
 # EUNSUPPORTEDPROTOCOL before installing anything. We do not need those deps:
 # ncc bundles them into dist/index.js, so only the createRequire() externals
-# below must exist in node_modules at runtime. Move the manifest aside for the
-# duration of the install so npm resolves nothing but the explicit packages,
-# then restore it. (--no-save means npm won't write a package.json of its own.)
-HIDDEN=""
+# below must exist in THIS dir's node_modules at runtime (createRequire resolves
+# up from dist/index.js).
+#
+# Swap in a minimal stub manifest for the duration of the install: npm then
+# anchors to this directory (installs into ./node_modules) with no workspace:
+# deps to parse. Deleting the manifest instead is wrong — npm would walk up to
+# the monorepo root package.json and install node_modules there, out of
+# createRequire's resolution path. Restore the real manifest via trap.
+STUBBED=""
 if [[ -f package.json ]]; then
   mv package.json .a11y-fixer-deps.pkg.bak
-  HIDDEN=1
+  printf '{"name":"a11y-fixer-action-runtime-deps","version":"0.0.0","private":true}\n' > package.json
+  STUBBED=1
 fi
-restore_manifest() { [[ -n "$HIDDEN" ]] && mv .a11y-fixer-deps.pkg.bak package.json || true; }
+restore_manifest() { [[ -n "$STUBBED" ]] && mv .a11y-fixer-deps.pkg.bak package.json || true; }
 trap restore_manifest EXIT
 
 npm install --no-save --no-audit --no-fund --omit=dev --legacy-peer-deps \
