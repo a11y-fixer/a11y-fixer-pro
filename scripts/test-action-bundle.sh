@@ -43,6 +43,18 @@ cp -R "$REPO_ROOT/packages/github-action/dist" "$AD/dist"
 # bug that hit real consumers; install-action-runtime-deps.sh must cope with it.
 cp "$REPO_ROOT/packages/github-action/package.json" "$AD/package.json"
 
+# Guard the "createRequire is not a function" class: only the main index.js may
+# call createRequire (core's ESLint scanner). A lazy chunk (NNN.index.js) doing
+# so means ncc code-split a dynamic import and failed to bind the `node:module`
+# ESM external there, so createRequire is undefined and the scan dies. Keeping
+# puppeteer-core / @axe-core/puppeteer external (see install-action-runtime-deps.sh)
+# avoids that split; this catches a regression without needing a browser.
+BAD_CHUNKS="$(grep -lE '\(0,[A-Za-z_$]+\.createRequire\)\(import\.meta\.url\)' "$AD"/dist/*.index.js 2>/dev/null || true)"
+if [[ -n "$BAD_CHUNKS" ]]; then
+  echo "::error::lazy chunk references createRequire with an unbound node:module external (the 'createRequire is not a function' bug): $BAD_CHUNKS"
+  exit 1
+fi
+
 echo "=== installing runtime deps (same script action.yml uses) ==="
 bash "$REPO_ROOT/scripts/install-action-runtime-deps.sh" "$AD"
 
