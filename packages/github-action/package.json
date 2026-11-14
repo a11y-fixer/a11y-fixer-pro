@@ -6,7 +6,7 @@
   "main": "./dist/index.js",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "build": "tsc --noEmit && ncc build src/index.ts -o dist --minify",
+    "build": "tsc --noEmit && rm -rf dist && ncc build src/index.ts -o dist --minify -e puppeteer-core -e @axe-core/puppeteer",
     "test": "vitest run",
     "coverage": "vitest run --coverage"
   },

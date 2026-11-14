@@ -1,10 +1,19 @@
 #!/usr/bin/env bash
 #
-# Installs the runtime dependencies that @a11y-fixer/core loads lazily via
-# createRequire() when it builds its ESLint scanner (see `createEslint`). ncc
-# cannot bundle these: createRequire() resolves against the real filesystem,
-# relative to dist/index.js, so it bypasses the bundle entirely. They must
-# physically exist in a node_modules reachable from dist/index.js at runtime.
+# Installs the runtime dependencies the action loads from the filesystem rather
+# than from the ncc bundle. Two groups, both resolved against node_modules next
+# to dist/index.js at runtime:
+#
+#  1. The ESLint scanner stack @a11y-fixer/core loads lazily via createRequire()
+#     (see `createEslint`). ncc can't bundle these: createRequire() resolves
+#     against the real filesystem, bypassing the bundle entirely.
+#  2. puppeteer-core and @axe-core/puppeteer, which the HTML/URL scan path
+#     imports dynamically. These are marked `-e` (external) in the ncc build ON
+#     PURPOSE: bundling them makes ncc code-split the dynamic import into a lazy
+#     chunk where webpack fails to bind the `node:module` ESM external, so
+#     createRequire() is undefined there and the scan dies with "createRequire
+#     is not a function". Keeping them external avoids that split. Keep this
+#     list and the build's `-e` flags in sync.
 #
 # This is the single source of truth for that dependency set — both action.yml
 # (consumer runtime) and scripts/test-action-bundle.sh (CI regression test)
@@ -51,4 +60,6 @@ npm install --no-save --no-audit --no-fund --omit=dev --legacy-peer-deps \
   eslint@10.14.0 \
   eslint-plugin-jsx-a11y@6.10.2 \
   @typescript-eslint/parser@8.72.2 \
-  typescript@5.9.3
+  typescript@5.9.3 \
+  puppeteer-core@25.17.0 \
+  @axe-core/puppeteer@4.14.0
