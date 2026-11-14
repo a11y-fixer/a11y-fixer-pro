@@ -27,8 +27,8 @@ importers:
   packages/ai:
     dependencies:
       '@a11y-fixer/core':
-        specifier: ^0.1.2
-        version: 0.1.2(@axe-core/puppeteer@4.14.0(puppeteer@23.11.1(bare-buffer@3.7.2)(typescript@5.9.3)))(bare-buffer@3.7.2)(typescript@5.9.3)
+        specifier: ^0.1.3
+        version: 0.1.3(@axe-core/puppeteer@4.14.0(puppeteer@23.11.1(bare-buffer@3.7.2)(typescript@5.9.3)))(bare-buffer@3.7.2)(typescript@5.9.3)
       '@anthropic-ai/sdk':
         specifier: ^1.8.0
         version: 1.8.0(zod@4.6.7)
@@ -49,8 +49,8 @@ importers:
         specifier: workspace:*
         version: link:../ai
       '@a11y-fixer/core':
-        specifier: ^0.1.2
-        version: 0.1.2(@axe-core/puppeteer@4.14.0(puppeteer@23.11.1(bare-buffer@3.7.2)(typescript@5.9.3)))(bare-buffer@3.7.2)(typescript@5.9.3)
+        specifier: ^0.1.3
+        version: 0.1.3(@axe-core/puppeteer@4.14.0(puppeteer@23.11.1(bare-buffer@3.7.2)(typescript@5.9.3)))(bare-buffer@3.7.2)(typescript@5.9.3)
       '@actions/core':
         specifier: ^3.0.1
         version: 3.0.1
@@ -79,8 +79,8 @@ importers:
 
 packages:
 
-  '@a11y-fixer/core@0.1.2':
-    resolution: {integrity: sha512-7B1nLx/M22qMJ6gFAFBLGXQUCLORKl2AtQWS8XzLnfiUeA7iSgUIimRUC1MYMqbwj+UwG86QLr01jZUcvRxrew==}
+  '@a11y-fixer/core@0.1.3':
+    resolution: {integrity: sha512-JcAT98//EPNapv8vgz2nssTr50K3CXSW9SHz1+6BbrpJyJlrpznuTg6B9NP1VVYuswhpv4h9zHopOzf5vYwvpQ==}
     peerDependencies:
       '@axe-core/puppeteer': '>=4.0.0'
     peerDependenciesMeta:
@@ -2052,7 +2052,7 @@ packages:
 
 snapshots:
 
-  '@a11y-fixer/core@0.1.2(@axe-core/puppeteer@4.14.0(puppeteer@23.11.1(bare-buffer@3.7.2)(typescript@5.9.3)))(bare-buffer@3.7.2)(typescript@5.9.3)':
+  '@a11y-fixer/core@0.1.3(@axe-core/puppeteer@4.14.0(puppeteer@23.11.1(bare-buffer@3.7.2)(typescript@5.9.3)))(bare-buffer@3.7.2)(typescript@5.9.3)':
     dependencies:
       '@octokit/rest': 22.0.1
       '@typescript-eslint/parser': 8.72.2(eslint@10.14.0)(typescript@5.9.3)
