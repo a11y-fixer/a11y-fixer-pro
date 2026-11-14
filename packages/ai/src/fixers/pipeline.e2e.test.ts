@@ -85,8 +85,9 @@ function violation(id: string, wcagId: string, line: number): A11yViolation {
 describe('AI fixer pipeline (real core, fake provider)', () => {
   it('scans real JSX, applies an AI alt-text fix to disk, and a re-scan clears it', async () => {
     const before = await scanSource(dir, { html: false });
-    // The static ESLint path surfaces these three; axe-only rules do not appear.
-    expect(before.map(v => v.wcagId).sort()).toEqual(['1.1.1', '2.4.4', '2.4.6']);
+    // The static ESLint path surfaces all five: image-alt (1.1.1), label (1.3.1),
+    // anchor-has-content (2.4.4), heading-has-content (2.4.6), button-name (4.1.2).
+    expect(before.map(v => v.wcagId).sort()).toEqual(['1.1.1', '1.3.1', '2.4.4', '2.4.6', '4.1.2']);
 
     const registry = buildFullRegistry(fakeProvider, dir);
     const fixes = await registry.applyAll(before);

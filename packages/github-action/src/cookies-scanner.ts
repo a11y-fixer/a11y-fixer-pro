@@ -61,10 +61,13 @@ export async function scanWithCookies(
 
   // Mirrors launchBrowser() in @a11y-fixer/core: honors PUPPETEER_EXECUTABLE_PATH
   // so the GitHub Actions setup-chrome step points us at the right binary.
+  // --no-sandbox is required on GitHub's ubuntu-latest (Ubuntu 24.04+), which
+  // disables unprivileged user namespaces, so Chrome's sandbox can't start.
   const executablePath = process.env['PUPPETEER_EXECUTABLE_PATH'];
+  const args = ['--no-sandbox', '--disable-setuid-sandbox'];
   const launchOpts = executablePath
-    ? { headless: true as const, executablePath }
-    : { headless: true as const };
+    ? { headless: true as const, args, executablePath }
+    : { headless: true as const, args };
   const launcher = puppeteerMod.default ?? puppeteerMod;
   const browser = await launcher.launch(launchOpts);
 

@@ -77,7 +77,10 @@ describe('scanWithCookies', () => {
 
     const result = await scanWithCookies('.', { url: 'https://app.example.com', cookies: COOKIES });
 
-    expect(launch).toHaveBeenCalledWith({ headless: true });
+    expect(launch).toHaveBeenCalledWith({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    });
     expect(page.setCookie).toHaveBeenCalledWith(...COOKIES);
     expect(page.goto).toHaveBeenCalledWith('https://app.example.com', { waitUntil: 'networkidle0' });
     expect(browser.close).toHaveBeenCalled();
@@ -122,7 +125,11 @@ describe('scanWithCookies', () => {
 
     await scanWithCookies('.', { url: 'https://x', cookies: COOKIES });
 
-    expect(launch).toHaveBeenCalledWith({ headless: true, executablePath: '/opt/chrome' });
+    expect(launch).toHaveBeenCalledWith({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      executablePath: '/opt/chrome',
+    });
   });
 
   it('supports a module without a default export', async () => {
