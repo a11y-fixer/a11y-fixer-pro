@@ -37,6 +37,11 @@ trap 'rm -rf "$TMP"' EXIT
 AD="$TMP/action/packages/github-action"
 mkdir -p "$AD"
 cp -R "$REPO_ROOT/packages/github-action/dist" "$AD/dist"
+# Copy the real manifest too: a consumer's checkout has it, and it carries
+# pnpm-only `workspace:*` deps that npm can't parse. Without this the deps
+# install ran against an empty dir and silently dodged the EUNSUPPORTEDPROTOCOL
+# bug that hit real consumers; install-action-runtime-deps.sh must cope with it.
+cp "$REPO_ROOT/packages/github-action/package.json" "$AD/package.json"
 
 echo "=== installing runtime deps (same script action.yml uses) ==="
 bash "$REPO_ROOT/scripts/install-action-runtime-deps.sh" "$AD"

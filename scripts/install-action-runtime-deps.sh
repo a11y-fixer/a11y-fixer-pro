@@ -26,6 +26,21 @@ set -euo pipefail
 
 cd "${1:?usage: install-action-runtime-deps.sh <target-dir>}"
 
+# This package's own manifest declares pnpm-only workspace deps (e.g.
+# `@a11y-fixer/ai: workspace:*`) that npm cannot parse — it aborts with
+# EUNSUPPORTEDPROTOCOL before installing anything. We do not need those deps:
+# ncc bundles them into dist/index.js, so only the createRequire() externals
+# below must exist in node_modules at runtime. Move the manifest aside for the
+# duration of the install so npm resolves nothing but the explicit packages,
+# then restore it. (--no-save means npm won't write a package.json of its own.)
+HIDDEN=""
+if [[ -f package.json ]]; then
+  mv package.json .a11y-fixer-deps.pkg.bak
+  HIDDEN=1
+fi
+restore_manifest() { [[ -n "$HIDDEN" ]] && mv .a11y-fixer-deps.pkg.bak package.json || true; }
+trap restore_manifest EXIT
+
 npm install --no-save --no-audit --no-fund --omit=dev --legacy-peer-deps \
   eslint@10.14.0 \
   eslint-plugin-jsx-a11y@6.10.2 \
